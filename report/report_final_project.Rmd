@@ -1,0 +1,108 @@
+---
+title: "Final Project 2: Gene Expression ML on TCGA-BRCA"
+author: "Sihang Jiang"
+date: "2026-03-26"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+set.seed(550)
+source("../code/00_prepare_analysis_data.R")
+```
+
+# Introduction
+
+Breast cancer is a heterogeneous disease with substantial variation in gene expression patterns across patients.
+High-dimensional transcriptomic data provide an opportunity to identify latent sample structure and to explore potential molecular subgroups using machine learning methods.
+
+The goal of this project is to analyze TCGA-BRCA gene expression data using both unsupervised and supervised learning approaches.
+Specifically, this analysis uses principal component analysis (PCA) for dimension reduction, k-means clustering for subgroup identification, and LASSO logistic regression for subgroup prediction and feature selection.
+
+## Data
+
+The data come from the TCGA breast cancer (BRCA) cohort and consist of normalized RNA-seq gene expression measurements.
+The analysis begins with a gene-by-sample expression matrix obtained from the curatedTCGAData package.
+
+```{r}
+dim(expr)
+```
+
+
+The full dataset contains gene expression values for a large number of genes across breast cancer samples.
+To reduce noise and focus on informative features, only the most variable genes are retained for downstream analysis.
+
+## Methods
+Variance filtering
+
+Because many genes show limited variation across samples, genes with the highest variance were selected before model fitting.
+In this project, the top 500 most variable genes were used to construct the analysis matrix.
+
+
+```{r}
+length(top_genes)
+dim(X)
+```
+
+Here, X is the sample-by-gene matrix used for PCA, clustering, and classification.
+
+Principal component analysis
+
+Principal component analysis was applied to the filtered expression matrix in order to summarize the major axes of variation in the data.
+The first few principal components were then used as lower-dimensional representations of the samples.
+
+## K-means clustering
+
+K-means clustering with 𝑘=2 was applied to the first five principal components.
+This produced two clusters, which were treated as intrinsic gene-expression subgroups for the remainder of the analysis.
+
+table(y)
+##LASSO logistic regression
+
+After cluster membership was defined, a LASSO logistic regression model was fit using the filtered gene expression matrix as predictors and cluster label as the binary outcome.
+The purpose of this step was both prediction and variable selection.
+LASSO imposes an L1 penalty, encouraging sparse solutions and identifying a smaller subset of genes that best distinguish the two clusters.
+
+## Results
+### Figure 1: PCA visualization
+
+```{r figure1, echo=FALSE}
+source("../code/02_make_figure.R", local = knitr::knit_global())
+```
+
+Figure 1 displays the samples projected onto the first two principal components, with points colored by the cluster labels from k-means clustering.
+The plot suggests that the two clusters occupy partially distinct regions in the reduced-dimensional space, indicating meaningful heterogeneity in the underlying gene expression profiles.
+
+### Table 1: Genes selected by LASSO
+
+```{r table1, echo=FALSE}
+source("../code/03_make_table.R", local = knitr::knit_global())
+table1_gt
+```
+```
+
+Table 1 reports genes with non-zero coefficients selected by the LASSO model.
+These genes represent the strongest contributors to separation between the two inferred expression-based subgroups.
+
+## Discussion
+
+This project applied a machine learning workflow to TCGA-BRCA gene expression data.
+After filtering to highly variable genes, PCA was used to reduce dimensionality and reveal major patterns of variation.
+K-means clustering identified two sample subgroups, and LASSO logistic regression was then used to predict cluster membership and select important genes.
+
+Overall, the results show that high-dimensional breast cancer gene expression data contain structured variation that can be summarized and modeled effectively using standard machine learning methods.
+The PCA plot suggests separation between clusters, while the LASSO model identifies a sparse set of potentially informative genes.
+
+Several limitations should be noted.
+First, the clusters were defined by an unsupervised algorithm and may not correspond directly to known biological subtypes.
+Second, the analysis used only one filtering strategy and one clustering specification.
+Future work could compare alternative clustering methods, incorporate known subtype labels, and evaluate model stability using resampling or external validation.
+
+## Conclusion
+
+In summary, this analysis demonstrates a reproducible workflow for exploring TCGA-BRCA transcriptomic data using dimension reduction, clustering, and penalized regression.
+The project highlights how unsupervised and supervised learning can be combined to identify structure in high-dimensional genomic data and to select genes associated with that structure.
