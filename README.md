@@ -9,8 +9,8 @@ The final report includes:
 - a table of genes selected by the LASSO model
 
 ## Repository structure
-- `report/final_project.Rmd`: source file for the final report
-- `report/final_project.html`: rendered final report
+- `report/report_final_project.Rmd`: source file for the final report
+- `report/report_final_project.html`: rendered final report
 - `code/00_prepare_analysis_data.R`: prepares the main analysis objects used in the report
 - `code/01_download_data.R`: downloads and exports small repository data files
 - `code/02_make_figure.R`: code for the required figure
@@ -19,8 +19,18 @@ The final report includes:
 - `data/BRCA_clinical_small.csv`: matching sample metadata
 - `data/data_inventory.csv`: summary of included repository data files
 
+## Restore package environment
+From the project root directory, run:
+
+```bash
+make install
+```
+This command runs `renv::restore()` to synchronize the project package environment.
+
+```
 ## How to generate the final report
 From the project root directory, run:
 
 ```r
-rmarkdown::render("report/final_project.Rmd")
+rmarkdown::render("report/report_final_project.Rmd")
+```
