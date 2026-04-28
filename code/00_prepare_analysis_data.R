@@ -1,37 +1,25 @@
-# code/00_prepare_analysis_data.R
-
-# Prepare shared analysis objects for the TCGA-BRCA final project
-
-suppressPackageStartupMessages({
-  library(curatedTCGAData)
-  library(SummarizedExperiment)
-})
-
 set.seed(550)
 
-# Download/load TCGA-BRCA RNA-seq normalized data
-tcga <- curatedTCGAData(
-  diseaseCode = "BRCA",
-  assays = "RNASeq2GeneNorm",
-  version = "2.1.1",
-  dry.run = FALSE
-)
+expr_df <- read.csv("data/BRCA_small.csv", check.names = FALSE)
 
-se <- tcga[[1]]
-expr <- assay(se)
+gene_names <- expr_df[[1]]
+expr <- as.matrix(expr_df[, -1, drop = FALSE])
+rownames(expr) <- gene_names
+storage.mode(expr) <- "numeric"
 
-# Select top 500 most variable genes
-vars <- apply(expr, 1, var)
-top_genes <- names(sort(vars, decreasing = TRUE))[1:500]
+expr <- expr[complete.cases(expr), , drop = FALSE]
+expr <- expr[apply(expr, 1, function(z) all(is.finite(z))), , drop = FALSE]
 
-# Build sample-by-gene matrix
+vars <- apply(expr, 1, var, na.rm = TRUE)
+expr <- expr[vars > 0 & is.finite(vars), , drop = FALSE]
+vars <- vars[vars > 0 & is.finite(vars)]
+
+top_genes <- rownames(expr)[order(vars, decreasing = TRUE)][1:min(500, nrow(expr))]
+
 X <- t(expr[top_genes, , drop = FALSE])
 
-# PCA
 pca <- prcomp(X, scale. = TRUE)
 
-# K-means clustering using first 5 PCs
-km <- kmeans(pca$x[, 1:5], centers = 2)
+km <- kmeans(pca$x[, 1:min(5, ncol(pca$x))], centers = 2)
 
-# Cluster labels for downstream modeling
 y <- factor(km$cluster, labels = c("Cluster 1", "Cluster 2"))

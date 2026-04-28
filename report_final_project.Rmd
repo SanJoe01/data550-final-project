@@ -12,7 +12,7 @@ output:
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 set.seed(550)
-source("../code/00_prepare_analysis_data.R")
+source("code/00_prepare_analysis_data.R")
 ```
 
 # Introduction
@@ -59,8 +59,10 @@ The first few principal components were then used as lower-dimensional represent
 
 K-means clustering with 𝑘=2 was applied to the first five principal components.
 This produced two clusters, which were treated as intrinsic gene-expression subgroups for the remainder of the analysis.
+```{r}
 
 table(y)
+```
 ##LASSO logistic regression
 
 After cluster membership was defined, a LASSO logistic regression model was fit using the filtered gene expression matrix as predictors and cluster label as the binary outcome.
@@ -71,7 +73,7 @@ LASSO imposes an L1 penalty, encouraging sparse solutions and identifying a smal
 ### Figure 1: PCA visualization
 
 ```{r figure1, echo=FALSE}
-source("../code/02_make_figure.R", local = knitr::knit_global())
+source("code/02_make_figure.R", local = knitr::knit_global())
 ```
 
 Figure 1 displays the samples projected onto the first two principal components, with points colored by the cluster labels from k-means clustering.
@@ -80,9 +82,8 @@ The plot suggests that the two clusters occupy partially distinct regions in the
 ### Table 1: Genes selected by LASSO
 
 ```{r table1, echo=FALSE}
-source("../code/03_make_table.R", local = knitr::knit_global())
+source("code/03_make_table.R", local = knitr::knit_global())
 table1_gt
-```
 ```
 
 Table 1 reports genes with non-zero coefficients selected by the LASSO model.
